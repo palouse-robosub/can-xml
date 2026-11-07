@@ -11,24 +11,24 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tinyxml2)
 
-set(CAN_XML ${CMAKE_BINARY_DIR}/generated/can-xml.hpp)
-
-configure_file(
-    ${CMAKE_SOURCE_DIR}/can-ids.xml
-    ${CMAKE_BINARY_DIR}/can-ids.xml
-    COPYONLY
-)
+set(CAN_XML ${CMAKE_BINARY_DIR}/generated/guppy_can.hpp)
 
 add_custom_command(
     OUTPUT ${CAN_XML}
     COMMAND can_generator
     DEPENDS can_generator # codegen
-    COMMENT "Generating GuppyCAN.hpp"
+    COMMENT "Generating guppy_can.hpp"
 )
 add_custom_target(run_can_generator ALL DEPENDS ${CAN_XML})
 
-add_executable(can_generator can_generator.cpp)
+# Inserting shared.hpp and can-ids.xml directly into can_generator.cpp
+file(READ resource/can-ids.xml CAN_IDS_XML)
+file(READ include/shared.hpp SHARED_CAN_CODE)
+configure_file(src/can_generator.cpp can_generator_replaced.cpp @ONLY)
+
+add_executable(can_generator can_generator_replaced.cpp include/shared.hpp)
 target_link_libraries(can_generator tinyxml2)
+target_include_directories(can_generator PRIVATE include)
 
 
 

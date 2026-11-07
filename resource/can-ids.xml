@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+CAN ID Format:
+11 bits:
+0 0000000 000
+
+Bit     1: Reserved for future use
+Bits  2-8: Device ID
+Bits 9-11: Device Sub-ID
+-->
+
+<!--
+XML Format:
+name="ExampleID"
+^ This name must be a valid C++ identifier and a valid ROS2 topic name
+https://en.cppreference.com/cpp/language/identifiers
+https://design.ros2.org/articles/topic_and_service_names.html
+
+ros-publish="false"
+^ If true these messages will be published to a ROS topic. This is not
+encoded in the ID itself. Enabled by default.
+
+data-type="unspecified"
+^ One of unspecified, version, state, bool, uint32, int32, or float32.
+Unspecified by default
+
+device-id="0"
+^ 7 bit integer
+
+sub-id="0"
+^ 3 bit integer; Useful for grouping related IDs
+-->
+
+<can-ids>
+    <!--
+    <id name="ExampleID" ros-publish="false" data-type="unspecified" device-id="0" sub-id="0"/>
+    -->
+    <id name="CurrentState" data-type="version" device-id="1" sub-id="0"/>
+
+    <id name="MotorBoardHeartbeat" data-type="uint32" device-id="2" sub-id="0"/>
+
+    <id name="Motor0" ros-publish="false" data-type="float32" device-id="3" sub-id="0"/>
+    <id name="Motor1" ros-publish="false" data-type="float32" device-id="3" sub-id="1"/>
+    <id name="Motor2" ros-publish="false" data-type="float32" device-id="3" sub-id="2"/>
+    <id name="Motor3" ros-publish="false" data-type="float32" device-id="3" sub-id="3"/>
+    <id name="Motor4" ros-publish="false" data-type="float32" device-id="3" sub-id="4"/>
+    <id name="Motor5" ros-publish="false" data-type="float32" device-id="3" sub-id="5"/>
+    <id name="Motor6" ros-publish="false" data-type="float32" device-id="3" sub-id="6"/>
+    <id name="Motor7" ros-publish="false" data-type="float32" device-id="3" sub-id="7"/>
+
+    <id name="Torpedo" device-id="4" sub-id="0"/>
+
+    <id name="Claw" device-id="5" sub-id="0"/>
+
+    <id name="EStopTriggered" data-type="bool" device-id="6" sub-id="0"/>
+
+    <id name="WetBoardHeartbeat" data-type="uint32" device-id="8" sub-id="0"/>
+
+    <id name="LEDBrightness" data-type="float32" device-id="9" sub-id="0"/>
+
+    <id name="Switch1" data-type="bool" device-id="10" sub-id="1"/>
+    <id name="Switch2" data-type="bool" device-id="10" sub-id="2"/>
+
+    <id name="MoistureSensor" device-id="11" sub-id="0"/>
+
+    <id name="BarometerError" data-type="bool"    device-id="12" sub-id="0"/>
+    <id name="BarometerTemp"  data-type="float32" device-id="12" sub-id="1"/>
+    <id name="BarometerDepth" data-type="float32" device-id="12" sub-id="2"/>
+    <id name="BarometerAlt"                       device-id="12" sub-id="3"/>
+</can-ids>

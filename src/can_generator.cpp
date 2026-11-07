@@ -1,5 +1,7 @@
 #include <tinyxml2.h>
 
+#include "../include/shared.hpp"
+
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -7,6 +9,8 @@
 #include <bitset>
 #include <fstream>
 #include <filesystem>
+
+#cmakedefine CAN_IDS_XML
 
 using tinyxml2::XMLElement;
 
@@ -44,7 +48,7 @@ bool is_valid_topic_and_identifier(const std::string& string) {
     return true;
 }
 
-const char* read_attribute(XMLElement* can_id, const char* tag_name,
+const char* read_attribute(const XMLElement* can_id, const char* tag_name,
                            const std::string& closest_id_name) {
     const char* attribute = can_id->Attribute(tag_name);
     if (!attribute) {
@@ -55,7 +59,7 @@ const char* read_attribute(XMLElement* can_id, const char* tag_name,
     return attribute;
 }
 
-std::string read_ident_attribute(XMLElement* can_id, const char* tag_name,
+std::string read_ident_attribute(const XMLElement* can_id, const char* tag_name,
                                  const std::string& closest_id_name) {
     const char* text = read_attribute(can_id, tag_name, closest_id_name);
 
@@ -69,7 +73,7 @@ std::string read_ident_attribute(XMLElement* can_id, const char* tag_name,
     return name;
 }
 
-bool read_bool_attribute(XMLElement* can_id, const char* tag_name,
+bool read_bool_attribute(const XMLElement* can_id, const char* tag_name,
                          const std::string& closest_id_name) {
     const char* text = read_attribute(can_id, tag_name, closest_id_name);
     if (std::strcmp(text, "true") == 0)
@@ -84,7 +88,7 @@ bool read_bool_attribute(XMLElement* can_id, const char* tag_name,
     }
 }
 
-int read_int_attribute(XMLElement* can_id, const char* tag_name, int bit_width,
+int read_int_attribute(const XMLElement* can_id, const char* tag_name, int bit_width,
                        const std::string& closest_id_name) {
     const char* text = read_attribute(can_id, tag_name, closest_id_name);
     int integer = -1;
@@ -107,38 +111,20 @@ int read_int_attribute(XMLElement* can_id, const char* tag_name, int bit_width,
     }
 }
 
-constexpr uint16_t
-    determine_can_id(int device_id, int sub_id) {
-    return (device_id << 3) | sub_id;
+CANID determine_can_id(unsigned int device_id, unsigned int sub_id) {
+    return CANID {(device_id << 3) | sub_id};
 }
 
-std::string cplusplus_constexpr(const std::string& name, uint16_t id) {
-    std::stringstream out{};
-    out << "constexpr CANID " << name << " = 0b"
-    << std::bitset<1>(id >> 10) << "'"
-    << std::bitset<7>(id >> 3) << "'"
-    << std::bitset<3>(id)
-    << ";";
-    return out.str();
+std::ostream& operator<<(std::ostream& stream, const CANID& id) {
+    return stream << "0b"
+    << std::bitset<1>(id.id >> 10) << "'"
+    << std::bitset<7>(id.id >> 3) << "'"
+    << std::bitset<3>(id.id);
 }
 
-// Should be pasted into GuppyCAN.hpp
-namespace GuppyCAN {
-typedef unsigned short CANID;
-constexpr const char* name_from_id(const CANID id) {
-    switch (id) {
-    case 0b00000000000: return "CurrentState";
-    case 0b00001100011: return "BarometerAlt";
-    default: return "";
-    }
-}
-}
-
-// End: Should be pasted into GuppyCAN.hpp
-
-struct NameIDPair {
+struct CANIDMeta {
     std::string name;
-    GuppyCAN::CANID id;
+    CANID id;
 };
 
 int main() {
@@ -155,7 +141,7 @@ int main() {
         std::abort();
     }
 
-    std::vector<NameIDPair> can_ids{};
+    std::vector<CANIDMeta> can_ids{};
 
     std::string closest_id_name = "start of document";
     XMLElement* can_id = root->FirstChildElement("id");
@@ -174,7 +160,7 @@ int main() {
             can_id, "sub-id", 3, closest_id_name
         );
 
-        can_ids.push_back(NameIDPair {
+        can_ids.push_back(CANIDMeta {
             .name = name,
             .id = determine_can_id(device_id, sub_id)
         });
@@ -182,22 +168,36 @@ int main() {
         can_id = can_id->NextSiblingElement("id");
     }
 
+    // Generation of guppy_can.hpp
+    // SHARED_CAN_CODE gets replaced by CMake with the contents of shared.hpp
     std::filesystem::create_directory("generated");
-    std::ofstream header("generated/GuppyCAN.hpp");
+    std::ofstream header("generated/guppy_can.hpp");
 
     header << R"(/// GENERATED -- Do not edit directly
 /// CAN IDs are specified in can-ids.xml
 #ifndef GUPPY_CAN_HPP
 #define GUPPY_CAN_HPP
 
-typedef unsigned short CANID;
-
-namespace GuppyCAN {
+namespace guppy_can {
+@SHARED_CAN_CODE@
 )";
-    for (const NameIDPair& pair : can_ids) {
-        header << cplusplus_constexpr(pair.name, pair.id) << "\n";
+    // constexpr's
+    for (const CANIDMeta& meta : can_ids) {
+        header << "constexpr CANID " << meta.name << " = { .id=" << meta.id << " };\n";
     }
-    header << R"(}
+    // name_of
+    header << "\nconstexpr const char* name_of(const can_size_t id) {\n"
+    << "    switch (id) {\n";
+    for (const CANIDMeta& meta : can_ids) {
+        header << "        case " << meta.id << ": return " << '"' << meta.name << '"' << '\n';
+    }
+    header << "    }\n}\n";
+    // ros_publish_of
+    // TODO
+    // message_data_type_of
+    // TODO
+    header << R"(
+} // namespace guppy_can
 
 #endif // GUPPY_CAN_HPP)";
 
