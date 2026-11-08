@@ -10,8 +10,6 @@
 #include <fstream>
 #include <filesystem>
 
-#cmakedefine CAN_IDS_XML
-
 using tinyxml2::XMLElement;
 
 /// Returns a trimmed substring
@@ -176,17 +174,16 @@ struct CANIDMeta {
 
 int main() {
     tinyxml2::XMLDocument doc;
-    const char* path = "./can-ids.xml";
-    doc.LoadFile(path);
+    doc.Parse(R"(@CAN_IDS_XML@)");
 
     XMLElement* root = doc.RootElement();
-    if (!root) {
-        std::cerr << "Could not find " << path << " in working directory"
-            << " or XML is invalid" << std::endl;
-        // Possible improvement: show canonical path it searched here
-        //                       remember to handle possible errors on that
-        std::abort();
-    }
+    // if (!root) {
+    //     std::cerr << "Could not find " << path << " in working directory"
+    //         << " or XML is invalid" << std::endl;
+    //     // Possible improvement: show canonical path it searched here
+    //     //                       remember to handle possible errors on that
+    //     std::abort();
+    // }
 
     std::vector<CANIDMeta> can_ids{};
 
