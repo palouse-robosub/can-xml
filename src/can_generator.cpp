@@ -228,7 +228,7 @@ int main() {
     header << R"(/// GENERATED -- Do not edit directly
 /// CAN IDs are specified in can-ids.xml
 #ifndef GUPPY_CAN_HPP
-#define GUPPY_CAN_HP
+#define GUPPY_CAN_HPP
 #include <cstdint>
 
 namespace guppy_can {
