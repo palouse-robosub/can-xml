@@ -22,8 +22,8 @@ add_custom_command(
 add_custom_target(run_can_generator ALL DEPENDS ${CAN_XML})
 
 # Inserting shared.hpp and can-ids.xml directly into can_generator.cpp
-file(READ resource/can-ids.xml CAN_IDS_XML)
-file(READ include/shared.hpp SHARED_CAN_CODE)
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/resource/can-ids.xml CAN_IDS_XML)
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/shared.hpp SHARED_CAN_CODE)
 configure_file(src/can_generator.cpp can_generator_replaced.cpp @ONLY)
 
 add_executable(can_generator can_generator_replaced.cpp include/shared.hpp)

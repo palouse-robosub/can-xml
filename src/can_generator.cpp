@@ -73,16 +73,19 @@ std::string read_ident_attribute(const XMLElement* can_id, const char* tag_name,
     return name;
 }
 
-bool read_bool_attribute(const XMLElement* can_id, const char* tag_name,
-                         const std::string& closest_id_name) {
-    const char* text = read_attribute(can_id, tag_name, closest_id_name);
-    if (std::strcmp(text, "true") == 0)
+bool read_optional_bool_attribute(const XMLElement* can_id, const char* tag_name,
+                        bool default_value, const std::string& closest_id_name) {
+    const char* text = can_id->Attribute(tag_name);
+    if (!text)
+        return default_value;
+    else if (std::strcmp(text, "true") == 0)
         return true;
     else if (std::strcmp(text, "false") == 0)
         return false;
     else {
         std::cerr << "Tag `" << tag_name << "=\"" << text << "\"` near "
-            << closest_id_name << R"( must be either "false" or "true")"
+            << closest_id_name << R"( must be "false", "true", or left unspecified)"
+            << " which will default to: " << (default_value ? "\"true\"" : "\"false\"")
             << std::endl;
         std::abort();
     }
@@ -111,6 +114,35 @@ int read_int_attribute(const XMLElement* can_id, const char* tag_name, int bit_w
     }
 }
 
+MessageDataType read_message_type(const XMLElement* can_id, MessageDataType default_type,
+                                  const std::string& closest_id_name) {
+    const char* text = can_id->Attribute("data-type");
+    if (!text)
+        return default_type;
+    else if (std::strcmp(text, "unspecified") == 0)
+        return MessageDataType::Unspecified;
+    else if (std::strcmp(text, "version") == 0)
+        return MessageDataType::Version;
+    else if (std::strcmp(text, "state") == 0)
+        return MessageDataType::State;
+    else if (std::strcmp(text, "bool") == 0)
+        return MessageDataType::Bool;
+    else if (std::strcmp(text, "uint32") == 0)
+        return MessageDataType::UInt32;
+    else if (std::strcmp(text, "int32") == 0)
+        return MessageDataType::Int32;
+    else if (std::strcmp(text, "float32") == 0)
+        return MessageDataType::Float32;
+    else {
+        std::cerr << "Tag `" << "data-type" << "=\"" << text << "\"` near "
+            << closest_id_name
+            << " must be one of [unspecified, version, state, bool, uint32, int32, float32]"
+            << std::endl;
+        std::abort();
+    }
+
+}
+
 CANID determine_can_id(unsigned int device_id, unsigned int sub_id) {
     return CANID {(device_id << 3) | sub_id};
 }
@@ -122,9 +154,24 @@ std::ostream& operator<<(std::ostream& stream, const CANID& id) {
     << std::bitset<3>(id.id);
 }
 
+std::ostream& operator<<(std::ostream& stream, const MessageDataType& data_type) {
+    stream << "MessageDataType::";
+    switch (data_type) {
+        default: return stream << "Unspecified"; break;
+        case MessageDataType::Version: return stream << "Version"; break;
+        case MessageDataType::State: return stream << "State"; break;
+        case MessageDataType::Bool: return stream << "Bool"; break;
+        case MessageDataType::UInt32: return stream << "UInt32"; break;
+        case MessageDataType::Int32: return stream << "Int32"; break;
+        case MessageDataType::Float32: return stream << "Float32"; break;
+        }
+}
+
 struct CANIDMeta {
-    std::string name;
     CANID id;
+    std::string name;
+    bool ros_publish;
+    MessageDataType data_type;
 };
 
 int main() {
@@ -159,10 +206,18 @@ int main() {
         int sub_id = read_int_attribute(
             can_id, "sub-id", 3, closest_id_name
         );
+        bool ros_publish = read_optional_bool_attribute(
+            can_id, "ros-publish", true, closest_id_name
+        );
+        MessageDataType data_type = read_message_type(
+            can_id, MessageDataType::Unspecified, closest_id_name
+        );
 
         can_ids.push_back(CANIDMeta {
+            .id = determine_can_id(device_id, sub_id),
             .name = name,
-            .id = determine_can_id(device_id, sub_id)
+            .ros_publish = ros_publish,
+            .data_type = data_type,
         });
 
         can_id = can_id->NextSiblingElement("id");
@@ -183,19 +238,32 @@ namespace guppy_can {
 )";
     // constexpr's
     for (const CANIDMeta& meta : can_ids) {
-        header << "constexpr CANID " << meta.name << " = { .id=" << meta.id << " };\n";
+        header << "constexpr CANID " << meta.name << " = { " << meta.id << " };\n";
     }
     // name_of
     header << "\nconstexpr const char* name_of(const can_size_t id) {\n"
     << "    switch (id) {\n";
     for (const CANIDMeta& meta : can_ids) {
-        header << "        case " << meta.id << ": return " << '"' << meta.name << '"' << '\n';
+        header << "        case " << meta.id << ": return " << '"' << meta.name << '"' << ";\n";
     }
+    header << "        default: return \"\";\n";
     header << "    }\n}\n";
     // ros_publish_of
-    // TODO
+    header << "\nconstexpr bool ros_publish_of(const can_size_t id) {\n";
+    header << "    switch (id) {\n";
+    for (const CANIDMeta& meta : can_ids) {
+        header << "        case " << meta.id << ": return " << (meta.ros_publish ? "true" : "false") << ";\n";
+    }
+    header << "        default: return true;\n";
+    header << "    }\n}\n";
     // message_data_type_of
-    // TODO
+    header << "\nconstexpr MessageDataType message_data_type_of(const can_size_t id) {\n";
+    header << "    switch (id) {\n";
+    for (const CANIDMeta& meta : can_ids) {
+        header << "        case " << meta.id << ": return " << meta.data_type << ";\n";
+    }
+    header << "        default: return MessageDataType::Unspecified;\n";
+    header << "    }\n}\n";
     header << R"(
 } // namespace guppy_can
 
