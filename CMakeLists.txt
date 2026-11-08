@@ -11,7 +11,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tinyxml2)
 
-set(CAN_XML ${CMAKE_BINARY_DIR}/generated/guppy_can.hpp)
+set(CAN_XML ${CMAKE_CURRENT_BINARY_DIR}/generated/guppy_can.hpp)
 
 add_custom_command(
     OUTPUT ${CAN_XML}
@@ -30,5 +30,6 @@ add_executable(can_generator can_generator_replaced.cpp include/shared.hpp)
 target_link_libraries(can_generator tinyxml2)
 target_include_directories(can_generator PRIVATE include)
 
-
+add_library(guppy_codegen INTERFACE)
+target_include_directories(guppy_codegen INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/generated)
 
