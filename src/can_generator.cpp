@@ -228,14 +228,15 @@ int main() {
     header << R"(/// GENERATED -- Do not edit directly
 /// CAN IDs are specified in can-ids.xml
 #ifndef GUPPY_CAN_HPP
-#define GUPPY_CAN_HPP
+#define GUPPY_CAN_HP
+#include <cstdint>
 
 namespace guppy_can {
 @SHARED_CAN_CODE@
 )";
     // constexpr's
     for (const CANIDMeta& meta : can_ids) {
-        header << "constexpr CANID " << meta.name << " = { " << meta.id << " };\n";
+        header << "static const CANID " << meta.name << " = { " << meta.id << " };\n";
     }
     // name_of
     header << "\nconstexpr const char* name_of(const can_size_t id) {\n"
