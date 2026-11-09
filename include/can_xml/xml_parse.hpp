@@ -1,7 +1,9 @@
 #ifndef XML_PARSE_HPP
 #define XML_PARSE_HPP
 
-#include "can_xml/shared.hpp"
+#include "can_xml/info.hpp"
+
+#include <tinyxml2.h>
 
 #include <iostream>
 #include <sstream>
@@ -139,7 +141,6 @@ MessageDataType read_message_type(const XMLElement* can_id, MessageDataType defa
             << std::endl;
         std::abort();
     }
-
 }
 
 CANID determine_can_id(unsigned int device_id, unsigned int sub_id) {

@@ -1,17 +1,14 @@
 #include <tinyxml2.h>
 
 #include "can_xml/xml_parse.hpp"
+#include "can_xml/info.hpp"
 
 #include <iostream>
-#include <sstream>
-#include <vector>
-#include <string>
-#include <bitset>
 #include <fstream>
 #include <filesystem>
 
 // Generation of guppy_can.hpp
-// SHARED_CAN_CODE gets replaced by CMake with the contents of shared.hpp
+// BEFORE_CODE gets replaced by CMake with the contents of /resoureces/before.hpp
 void generate_header(std::vector<CANIDMeta>& can_ids) {
     std::filesystem::create_directory("generated");
     std::ofstream header("generated/guppy_can.hpp");
@@ -23,7 +20,7 @@ void generate_header(std::vector<CANIDMeta>& can_ids) {
 #include <cstdint>
 
 namespace guppy_can {
-@SHARED_CAN_CODE@
+@BEFORE_CODE@
 )";
     // constexpr's
     for (const CANIDMeta& meta : can_ids) {
