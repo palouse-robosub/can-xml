@@ -33,7 +33,7 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
 # optional code generation
 option(CAN_XML_GENERATE
   "generate can header from xml"
-  OFF
+  ON
 )
 
 if(CAN_XML_GENERATE)
@@ -83,4 +83,16 @@ if(CAN_XML_GENERATE)
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/generated>
   )
   add_dependencies(guppy_codegen run_can_generator)
+else() # Added for IDE intellisense
+  add_executable(can_generator
+          ${CMAKE_CURRENT_SOURCE_DIR}/src/can_generator.cpp
+  )
+  target_link_libraries(can_generator
+          PRIVATE
+          ${PROJECT_NAME}
+  )
+  target_include_directories(can_generator
+          PRIVATE
+          ${CMAKE_CURRENT_SOURCE_DIR}/include
+  )
 endif()
