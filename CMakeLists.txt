@@ -44,7 +44,7 @@ if(CAN_XML_GENERATE)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated)
   # Inserting shared.hpp and can-ids.xml directly into can_generator.cpp
   file(READ ${CMAKE_CURRENT_SOURCE_DIR}/resource/can-ids.xml CAN_IDS_XML)
-  file(READ ${CMAKE_CURRENT_SOURCE_DIR}/resource/before.hpp BEFORE_CODE)
+  file(READ ${CMAKE_CURRENT_SOURCE_DIR}/resource/prelude.hpp CAN_HEADER_PRELUDE)
   configure_file(src/can_generator.cpp can_generator_replaced.cpp @ONLY)
 
   add_executable(can_generator

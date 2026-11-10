@@ -1,7 +1,6 @@
 #include <tinyxml2.h>
 
 #include "can_xml/xml_parse.hpp"
-#include "can_xml/info.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -20,7 +19,7 @@ void generate_header(std::vector<CANIDMeta>& can_ids) {
 #include <cstdint>
 
 namespace guppy_can {
-@BEFORE_CODE@
+@CAN_HEADER_PRELUDE@
 )";
     // constexpr's
     for (const CANIDMeta& meta : can_ids) {
@@ -61,13 +60,13 @@ int main() {
     doc.Parse(R"(@CAN_IDS_XML@)");
 
     XMLElement* root = doc.RootElement();
-    // if (!root) {
-    //     std::cerr << "Could not find " << path << " in working directory"
-    //         << " or XML is invalid" << std::endl;
-    //     // Possible improvement: show canonical path it searched here
-    //     //                       remember to handle possible errors on that
-    //     std::abort();
-    // }
+    if (!root) {
+        std::cerr << "Could not find XML file"
+            << " or XML is invalid" << std::endl;
+        // Possible improvement: show canonical path it searched here
+        //                       remember to handle possible errors on that
+        std::abort();
+    }
 
     auto can_ids = parse_xml(root);
 

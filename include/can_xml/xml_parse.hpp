@@ -1,8 +1,6 @@
 #ifndef XML_PARSE_HPP
 #define XML_PARSE_HPP
 
-#include "can_xml/info.hpp"
-
 #include <tinyxml2.h>
 
 #include <iostream>
@@ -14,6 +12,22 @@
 #include <filesystem>
 
 using tinyxml2::XMLElement;
+
+typedef uint32_t can_size_t;
+
+enum class MessageDataType {
+    Unspecified,
+    Version,
+    State,
+    Bool,
+    UInt32,
+    Int32,
+    Float32,
+};
+
+struct CANID {
+    can_size_t id;
+};
 
 /// Returns a trimmed substring
 std::string trim(const std::string& string) {
