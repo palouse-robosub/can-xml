@@ -38,7 +38,7 @@ sub-id="0"
     <id name="CurrentState" data-type="version" device-id="1" sub-id="0"/>
 
     <id name="MotorBoardHeartbeat" data-type="uint32" device-id="2" sub-id="0"/>
-    <id name="MotorBoardVersion" data-type="verson" device-id="2" sub-id="1"/>
+    <id name="MotorBoardVersion" data-type="version" device-id="2" sub-id="1"/>
 
     <id name="Motor0" ros-publish="false" data-type="float32" device-id="3" sub-id="0"/>
     <id name="Motor1" ros-publish="false" data-type="float32" device-id="3" sub-id="1"/>
