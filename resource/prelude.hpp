@@ -1,5 +1,4 @@
-
-typedef uint32_t can_size_t;
+using can_size_t = uint32_t;
 
 enum class MessageDataType {
     Unspecified,

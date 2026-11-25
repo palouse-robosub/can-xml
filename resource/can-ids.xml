@@ -38,7 +38,6 @@ sub-id="0"
     <id name="CurrentState" data-type="version" device-id="1" sub-id="0"/>
 
     <id name="MotorBoardHeartbeat" data-type="uint32" device-id="2" sub-id="0"/>
-    <id name="MotorBoardVersion" data-type="version" device-id="2" sub-id="1"/>
 
     <id name="Motor0" ros-publish="false" data-type="float32" device-id="3" sub-id="0"/>
     <id name="Motor1" ros-publish="false" data-type="float32" device-id="3" sub-id="1"/>
@@ -56,8 +55,6 @@ sub-id="0"
     <id name="EStopTriggered" data-type="bool" device-id="6" sub-id="0"/>
 
     <id name="WetBoardHeartbeat" data-type="uint32" device-id="8" sub-id="0"/>
-    <id name="WetBoardVersion" data-type="version" device-id="8" sub-id="1"/>
-
 
     <id name="LEDBrightness" data-type="float32" device-id="9" sub-id="0"/>
 

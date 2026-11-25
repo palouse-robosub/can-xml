@@ -1,52 +1,51 @@
 #include <tinyxml2.h>
 
+#include "can_xml/common.hpp"
 #include "can_xml/xml_parse.hpp"
 
-#include <iostream>
+#include <vector>
 #include <fstream>
+#include <iostream>
 #include <filesystem>
+
+using namespace tinyxml2;
 
 // Generation of guppy_can.hpp
 // BEFORE_CODE gets replaced by CMake with the contents of /resoureces/before.hpp
-void generate_header(std::vector<CANIDMeta>& can_ids) {
+void generate_header(std::vector<can_xml::CANIDMeta>& can_ids) {
     std::filesystem::create_directory("generated");
     std::ofstream header("generated/guppy_can.hpp");
 
-    header << R"(/// GENERATED -- Do not edit directly
+    header << R"(
+/// GENERATED -- Do not edit directy
 /// CAN IDs are specified in can-ids.xml
 #ifndef GUPPY_CAN_HPP
 #define GUPPY_CAN_HPP
-#include <cstdint>
 
-namespace guppy_can {
 @CAN_HEADER_PRELUDE@
 )";
     // constexpr's
-    for (const CANIDMeta& meta : can_ids) {
+    for (const can_xml::CANIDMeta& meta : can_ids)
         header << "static const CANID " << meta.name << " = { " << meta.id << " };\n";
-    }
     // name_of
     header << "\nconstexpr const char* name_of(const can_size_t id) {\n"
-    << "    switch (id) {\n";
-    for (const CANIDMeta& meta : can_ids) {
+        << "    switch (id) {\n";
+    for (const can_xml::CANIDMeta& meta : can_ids)
         header << "        case " << meta.id << ": return " << '"' << meta.name << '"' << ";\n";
-    }
     header << "        default: return \"\";\n";
     header << "    }\n}\n";
     // ros_publish_of
     header << "\nconstexpr bool ros_publish_of(const can_size_t id) {\n";
     header << "    switch (id) {\n";
-    for (const CANIDMeta& meta : can_ids) {
+    for (const can_xml::CANIDMeta& meta : can_ids)
         header << "        case " << meta.id << ": return " << (meta.ros_publish ? "true" : "false") << ";\n";
-    }
     header << "        default: return true;\n";
     header << "    }\n}\n";
     // message_data_type_of
     header << "\nconstexpr MessageDataType message_data_type_of(const can_size_t id) {\n";
     header << "    switch (id) {\n";
-    for (const CANIDMeta& meta : can_ids) {
+    for (const can_xml::CANIDMeta& meta : can_ids)
         header << "        case " << meta.id << ": return " << meta.data_type << ";\n";
-    }
     header << "        default: return MessageDataType::Unspecified;\n";
     header << "    }\n}\n";
     header << R"(
@@ -61,17 +60,17 @@ int main() {
 
     XMLElement* root = doc.RootElement();
     if (!root) {
-        std::cerr << "Could not find XML file"
-            << " or XML is invalid" << std::endl;
+        std::cerr << "Could not find XML file" << " or XML is invalid" << std::endl;
         // Possible improvement: show canonical path it searched here
         //                       remember to handle possible errors on that
         std::abort();
     }
 
-    auto can_ids = parse_xml(root);
+    auto can_ids = can_xml::parse_xml(root);
 
     generate_header(can_ids);
 
     std::cout << "Processing finished successfully" << std::endl;
+
     return 0;
 }

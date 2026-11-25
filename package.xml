@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>can_xml</name>
+  <version>1.0.0</version>
+  <description>
+    Parser for the xml format used in guppy to expose CAN IDs and ID metadata.
+  </description>
+  <license>Apache-2.0</license>
+
+  <maintainer email="oliver.ehlers@wsu.edu">Oliver Ehlers</maintainer>
+  <maintainer email="ryden@handsaker.org">Ryden Handsaker</maintainer>
+
+  <author>Oliver Ehlers</author>
+
+  <build_depend>ros_environment</build_depend>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>ament_index_cpp</depend>
+  <depend>tinyxml2</depend>
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+      <build_type >ament_cmake</build_type>
+  </export>
+</package>
